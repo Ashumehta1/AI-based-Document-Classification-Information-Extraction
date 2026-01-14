@@ -1,0 +1,28 @@
+# API
+fastapi
+uvicorn
+python-multipart
+
+# Core
+numpy
+pandas
+pillow
+
+# Image Processing
+opencv-python
+albumentations
+
+# OCR
+pytesseract
+easyocr
+
+# NLP / Transformers
+spacy
+transformers
+torch
+torchvision
+sentencepiece
+
+# Utilities
+regex
+
