@@ -1,2 +1,8 @@
 # Virtual environments
 /env/
+/models/
+dataset/
+.env
+__pycache__/
+*.pyc
+imp.txt
