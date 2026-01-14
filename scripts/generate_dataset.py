@@ -11,7 +11,7 @@ DATASET_PATH = r"D:\nrt_python_assignment\dataset"
 doc_types = ["invoice", "id_card", "certificate", "resume"]
 
 # Sample text data
-names = ["John Doe", "Alice Smith", "Bob Johnson", "Jane Williams"]
+names = ["Ankit", "Sohan Panday", "Boby sumit", "Mohan Tiwari"]
 amounts = ["₹2,500", "₹3,750", "₹1,200", "₹4,500"]
 dates = ["2025-01-12", "2025-02-28", "2025-03-15", "2025-04-20"]
 ids = ["AB123456", "XY987654", "CD654321", "EF112233"]
