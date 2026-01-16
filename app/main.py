@@ -1,130 +1,177 @@
+# # # from fastapi import FastAPI, UploadFile, File
+# # # from PIL import Image
+# # # import io
+
+# # # from app.ocr import extract_text
+# # # from app.extractor import extract_fields
+# # # from app.vision_classifier import classify_image
+# # # from app.logger import init_db   # <-- import init_db
+# # # from app.logger import log_prediction 
+
+# # # # Initialize DB at startup
+# # # init_db()  # <-- call it here
+
+# # # app = FastAPI(title="Document AI")
+
+# # # @app.get("/health")
+# # # def health():
+# # #     return {"status": "ok"}
+
+# # # @app.post("/analyze")
+# # # async def analyze(file: UploadFile = File(...)):
+# # #     img = Image.open(io.BytesIO(await file.read())).convert("RGB")
+
+# # #     doc_type = classify_image(img)
+# # #     text = extract_text(img)
+# # #     fields = extract_fields(text)
+
+# # #     return {
+# # #         "document_type": doc_type,
+# # #         "extracted_fields": fields
+# # #     }
+# # from fastapi import FastAPI, UploadFile, File
+# # from PIL import Image
+# # import io
+
+# # from app.ocr import extract_text
+# # from app.extractor import extract_fields
+# # from app.vision_classifier import classify_image
+# # from app.logger import init_db, log_prediction  # import both
+
+# # # Initialize DB at startup
+# # init_db()
+
+# # app = FastAPI(title="Document AI")
+
+# # @app.get("/health")
+# # def health():
+# #     return {"status": "ok"}
+
+# # @app.post("/analyze")
+# # async def analyze(file: UploadFile = File(...)):
+# #     filename = file.filename  # save original filename
+# #     img = Image.open(io.BytesIO(await file.read())).convert("RGB")
+
+# #     # Step 1: classify document
+# #     doc_type = classify_image(img)
+
+# #     # Step 2: OCR & extract fields
+# #     text = extract_text(img)
+# #     fields = extract_fields(text)
+
+# #     # Step 3: log prediction into DB
+# #     log_prediction(filename, doc_type, fields)
+
+# #     return {
+# #         "document_type": doc_type,
+# #         "extracted_fields": fields
+# #     }
+
+# from fastapi import FastAPI, UploadFile, File
+# from PIL import Image
+# import io
+
+# from app.ocr import extract_text
+# from app.extractor import extract_fields
+# from app.vision_classifier import classify_image
+# from app.logger import init_db, log_prediction
+
+# # PDF support
+# from pdf2image import convert_from_bytes
+
+# # Initialize DB
+# init_db()
+
+# app = FastAPI(title="Document AI")
+
+# @app.get("/health")
+# def health():
+#     return {"status": "ok"}
+
+# @app.post("/analyze")
+# async def analyze(file: UploadFile = File(...)):
+#     filename = file.filename
+#     content = await file.read()
+#     images = []
+
+#     # ---------------------------
+#     # Handle Images
+#     # ---------------------------
+#     if filename.lower().endswith((".png", ".jpg", ".jpeg")):
+#         images.append(Image.open(io.BytesIO(content)).convert("RGB"))
+
+#     # ---------------------------
+#     # Handle PDFs
+#     # ---------------------------
+#     elif filename.lower().endswith(".pdf"):
+#         # convert PDF pages to images
+#         images = convert_from_bytes(content)  # optionally: poppler_path="C:/poppler-23.05.0/Library/bin"
+
+#     else:
+#         return {"error": "Unsupported file type. Only images and PDFs are allowed."}
+
+#     # ---------------------------
+#     # Process each image / PDF page
+#     # ---------------------------
+#     results = []
+#     for img in images:
+#         doc_type = classify_image(img)
+#         text = extract_text(img)
+#         fields = extract_fields(text)
+
+#         # log each page
+#         log_prediction(filename, doc_type, fields)
+
+#         results.append({
+#             "document_type": doc_type,
+#             "extracted_fields": fields
+#         })
+
+#     # If single page, return first element, else return list
+#     return results[0] if len(results) == 1 else results
+
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import JSONResponse
 from PIL import Image
 import io
-import torch
-from torchvision import transforms
-import easyocr
-import pytesseract
-import re
-import torch.nn as nn
+from pdf2image import convert_from_bytes
 
-# ----------------------------
-# App Initialization
-# ----------------------------
-app = FastAPI(title="Document Classification & Extraction")
+from app.ocr import extract_text
+from app.extractor import extract_fields
+from app.vision_classifier import classify_image
+from app.logger import init_db, log_prediction
 
-# ----------------------------
-# Simple CNN Definition
-# ----------------------------
-class SimpleCNN(nn.Module):
-    def __init__(self, num_classes):
-        super(SimpleCNN, self).__init__()
-        IMG_SIZE = 224
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(128 * (IMG_SIZE//8) * (IMG_SIZE//8), 256),
-            nn.ReLU(),
-            nn.Linear(256, num_classes)
-        )
+# Initialize DB
+init_db()
 
-    def forward(self, x):
-        x = self.features(x)
-        x = self.classifier(x)
-        return x
+app = FastAPI(title="Document AI")
 
-# ----------------------------
-# Load Vision Model (CNN)
-# ----------------------------
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-NUM_CLASSES = 4  # invoice, id_card, certificate, resume
-IMG_SIZE = 224
+POPPLER_PATH = r"C:\poppler-23.05.0\Library\bin"  # <-- your Poppler bin path
 
-model = SimpleCNN(num_classes=NUM_CLASSES).to(device)
-model.load_state_dict(torch.load(r"D:\nrt_python_assignment\models\vision\doc_classifier.pth", map_location=device))
-model.eval()
-
-classes = ["invoice", "id_card", "certificate", "resume"]
-
-# ----------------------------
-# Transforms
-# ----------------------------
-transform = transforms.Compose([
-    transforms.Resize((IMG_SIZE, IMG_SIZE)),
-    transforms.ToTensor()
-])
-
-# ----------------------------
-# OCR Reader
-# ----------------------------
-reader = easyocr.Reader(['en'])
-
-# ----------------------------
-# Helper: Extract Fields
-# ----------------------------
-def extract_fields(text):
-    fields = {}
-
-    # Name (simple regex for capitalized words)
-    name_match = re.findall(r"[A-Z][a-z]+ [A-Z][a-z]+", text)
-    fields['name'] = name_match[0] if name_match else ""
-
-    # Date (formats like 2026-01-14, 14/01/2026)
-    date_match = re.findall(r"\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}", text)
-    fields['date'] = date_match[0] if date_match else ""
-
-    # Amount (₹2,500, $2500, 2500)
-    amount_match = re.findall(r"₹?\$?\d[\d,]*", text)
-    fields['amount'] = amount_match[0] if amount_match else ""
-
-    # ID Number (simple pattern)
-    id_match = re.findall(r"[A-Z0-9]{5,15}", text)
-    fields['id_number'] = id_match[0] if id_match else ""
-
-    return fields
-
-# ----------------------------
-# API Endpoints
-# ----------------------------
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
-@app.post("/classify-and-extract")
-async def classify_and_extract(file: UploadFile = File(...)):
-    # Read image
-    img_bytes = await file.read()
-    img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+@app.post("/analyze")
+async def analyze(file: UploadFile = File(...)):
+    content = await file.read()
+    # Check file type
+    if file.filename.lower().endswith(".pdf"):
+        # Convert PDF pages to images
+        images = convert_from_bytes(content, poppler_path=POPPLER_PATH)
+        # For now, just process first page (you can loop for multi-page later)
+        img = images[0]
+    else:
+        img = Image.open(io.BytesIO(content)).convert("RGB")
 
-    # Vision classification
-    input_tensor = transform(img).unsqueeze(0).to(device)
-    with torch.no_grad():
-        outputs = model(input_tensor)
-        _, pred = torch.max(outputs, 1)
-    document_type = classes[pred.item()]
+    # Document classification and field extraction
+    doc_type = classify_image(img)
+    text = extract_text(img)
+    fields = extract_fields(text)
 
-    # OCR
-    text = pytesseract.image_to_string(img)
-    # Or use EasyOCR: 
-    # text = " ".join([res[1] for res in reader.readtext(img_bytes)])
+    # Optionally log prediction
+    log_prediction(file.filename, doc_type, fields)
 
-    # Extract fields
-    extracted_fields = extract_fields(text)
-
-    return JSONResponse({
-        "document_type": document_type,
-        "extracted_fields": extracted_fields
-    })
+    return {
+        "document_type": doc_type,
+        "extracted_fields": fields
+    }
