@@ -118,4 +118,15 @@ Download
     "email": "ashisj08mehta@gmail.com"
   }
 }
-
+ or 
+ {
+  "document_type": "certificate",
+  "extracted_fields": {
+    "name": "Physical Modeling",
+    "date": "",
+    "amount": "",
+    "id_number": "CERTIFICATE",
+    "phone": "",
+    "email": ""
+  }
+}

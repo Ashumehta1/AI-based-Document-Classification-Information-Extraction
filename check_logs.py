@@ -1,4 +1,4 @@
-# check_logs.py
+
 import sqlite3
 import os
 import json

@@ -8,7 +8,7 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
-# Tesseract-based text extraction
+# text extraction
 def extract_text(image: Image.Image) -> str:
     """
     Extract text from an image using pytesseract
@@ -16,7 +16,7 @@ def extract_text(image: Image.Image) -> str:
     text = pytesseract.image_to_string(image)
     return text
 
-# EasyOCR-based text extraction (optional, more robust)
+# EasyOCR-based text extraction 
 reader = easyocr.Reader(['en'], gpu=False)
 
 def extract_text_easyocr(image: Image.Image) -> str:
