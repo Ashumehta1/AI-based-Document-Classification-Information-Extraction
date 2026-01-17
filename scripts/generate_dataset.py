@@ -67,6 +67,7 @@ def generate_dataset(num_images_per_type=50):
             create_text_image(doc_type, save_path, i)
             if i % 10 == 0:
                 print(f"{doc_type}: {i} images generated")
+                
 
 if __name__ == "__main__":
     generate_dataset()
