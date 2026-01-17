@@ -1,40 +1,68 @@
-# Document Classification & Information Extraction System
+##  Document Classification & Information Extraction System
+# Overview
 
-## Overview
-This project is an intelligent document processing pipeline capable of:
+    This project is an Intelligent Document Processing (IDP) system that:
 
-1. **Classifying documents** into types: Invoice, ID Card, Certificate, Resume.
-2. **Extracting key fields** like Name, Date, Amount, ID Number, Phone, Email using OCR and regex-based NLP.
-3. **Serving predictions via a REST API** built with FastAPI.
+Classifies documents into:
 
-## Folder Structure
+    Invoice
 
+    ID Card
+
+    Certificate
+
+    Resume
+
+Extracts key fields using OCR + NLP:
+
+    Name
+
+    Date
+
+    Amount
+
+    ID Number
+
+    Phone
+
+    Email
+
+Exposes predictions through a FastAPI REST API
+
+## The project can be run in two ways:
+
+    1. Using Docker 
+          (docker build -t document-ai .
+            docker run -p 8000:8000 document-ai)
+    2. Without Docker (Python virtual environment)
+
+## Project Structure
 nrt_python_assignment/
 │
 ├── app/
-│ ├── main.py
-│ ├── ocr.py
-│ ├── extractor.py
-│ ├── vision_classifier.py
-│ ├── logger.py
+│   ├── main.py
+│   ├── ocr.py
+│   ├── extractor.py
+│   ├── vision_classifier.py
+│   ├── logger.py
 │
 ├── scripts/
-│ ├── init.py
-│ ├── generate_dataset.py
-│ ├── train_cnn.py
+│   ├── __init__.py
+│   ├── generate_dataset.py
+│   ├── train_cnn.py
 │
-├── dataset/ # Document images for training
-│ ├── invoice/
-│ ├── id_card/
-│ ├── certificate/
-│ └── resume/
+├── dataset/
+│   ├── invoice/
+│   ├── id_card/
+│   ├── certificate/
+│   └── resume/
 │
 ├── models/
-│ └── vision/
-│ └── doc_classifier.pth
+│   └── vision/
+│       └── doc_classifier.pth
 │
-├── env/ # Virtual environment
 ├── requirements.txt
+├── Dockerfile
 └── README.md
 
 
@@ -45,9 +73,7 @@ nrt_python_assignment/
 
 ```bash
 python -m venv env
-env\Scripts\activate  # Windows
-# or
-source env/bin/activate  # Linux/Mac
+env\Scripts\activate 
 
 ## pip install -r requirements.txt
 pip install -r requirements.txt
