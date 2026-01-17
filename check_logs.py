@@ -12,7 +12,7 @@ c.execute("SELECT * FROM logs")
 rows = c.fetchall()
 
 if not rows:
-    print("No logs found yet. Make sure you called the /analyze endpoint.")
+    print("No logs found yet.")
 else:
     for row in rows:
         print("ID:", row[0])
