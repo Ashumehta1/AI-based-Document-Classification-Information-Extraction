@@ -1,16 +1,16 @@
-# 1. Base Python image
+# 1. Base image
 FROM python:3.10-slim
 
-# 2. Set working directory inside container
+# 2. Set working directory
 WORKDIR /app
 
-# 3. Install system dependencies (Tesseract OCR)
+# 3. Install system dependencies (OCR + OpenCV support)
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Copy requirements first (for faster rebuilds)
+# 4. Copy requirements first
 COPY requirements.txt .
 
 # 5. Install Python dependencies
